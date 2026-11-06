@@ -132,3 +132,15 @@ env -u PYTHONPATH .venv/bin/python -m pytest tests -q
 - Panda 模型来自 [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie)（Apache-2.0），由 `scripts/download_menagerie.py` 下载。
 - Panda 网格、`panda_v2.urdf` 和 `panda_v2.srdf` 来自 [ManiSkill](https://github.com/haosulab/ManiSkill)（Apache-2.0）。
 - 住宅场景使用 ReplicaCAD（CC BY-NC 4.0，**仅限非商业用途**）和 YCB 物品模型（CC BY 4.0），见 [assets/mujoco_kitchen/ATTRIBUTION.md](assets/mujoco_kitchen/ATTRIBUTION.md)。
+
+## 协作流程
+
+`origin` 为个人 fork，`upstream` 为实验室仓库。克隆后先添加 `upstream`：
+
+```bash
+git remote add upstream git@github.com:PIControlLab/mobile_manipulation.git
+```
+
+- 开发：在 `main` 上提交后 `git push origin main`
+- 同步：`git fetch upstream && git merge upstream/main`
+- 贡献：向 `PIControlLab:main` 开 PR，审查后合并
