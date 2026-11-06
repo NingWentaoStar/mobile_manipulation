@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.vscode/
+
+# Run outputs, generated simulator URDF copies, videos, reports
+outputs/
+
+# Downloaded by scripts/download_menagerie.py
+/assets/mujoco_menagerie/
+
+# Training runs
+training/runs/
+
+# colcon artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+log/

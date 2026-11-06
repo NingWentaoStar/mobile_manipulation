@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "description": "移动 Panda 技能库目录。local_skills 是可以在本机运行的技能；external_skills 是外部参考。",
+  "local_skills": [
+    {
+      "id": "pick",
+      "name": "从上方抓起物体",
+      "kind": "classical",
+      "call": "skills.run(\"pick\", object=name)",
+      "code": "mobile_panda_sim/skills/pick.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "底盘停稳；手里没有东西",
+      "applies_to": "窄边小于 7.5 cm、放在够得着的台面上的物体，从上方抓",
+      "not_for": "从侧面抓；抽屉和冰箱里的物品；台面靠墙一侧太远的物品",
+      "validated": {
+        "results": {
+          "sugar_box, pear, lemon": "24/24"
+        },
+        "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "place",
+      "name": "把手中物体放到台面上",
+      "kind": "classical",
+      "call": "skills.run(\"place\", target=(x, y), height=None)",
+      "code": "mobile_panda_sim/skills/place.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "手里握着物体，底盘停稳",
+      "applies_to": "平整台面",
+      "not_for": "放进抽屉或冰箱；倾斜或很小的表面；圆的物体松手后可能滚动几厘米",
+      "validated": {
+        "results": {
+          "entry_console": "24/24"
+        },
+        "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "open",
+      "name": "抓把手拉开抽屉或柜门",
+      "kind": "classical",
+      "call": "skills.run(\"open\", articulation=name, joint=joint, target=None)",
+      "code": "mobile_panda_sim/skills/articulate.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "底盘停稳；手里没有东西",
+      "applies_to": "台柜上层左、中抽屉；冰箱上门到约 35°",
+      "not_for": "把手低于约 0.55 m 的抽屉和柜门；冰箱下门；矮柜推拉门",
+      "validated": {
+        "results": {
+          "two drawers and fridge door": "24/24"
+        },
+        "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "close",
+      "name": "抓把手关上抽屉或柜门",
+      "kind": "classical",
+      "call": "skills.run(\"close\", articulation=name, joint=joint)",
+      "code": "mobile_panda_sim/skills/articulate.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "底盘停稳；手里没有东西",
+      "applies_to": "台柜上层左、中抽屉；冰箱上门从约 35° 关上",
+      "not_for": "把手低于约 0.55 m 的抽屉和柜门；从 70° 关冰箱门",
+      "validated": {
+        "results": {
+          "two drawers and fridge door": "24/24"
+        },
+        "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "home",
+      "name": "手臂回到收起姿态",
+      "kind": "classical",
+      "call": "skills.run(\"home\")",
+      "code": "mobile_panda_sim/skills/home.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "底盘停稳",
+      "applies_to": "任何位置，沿无碰撞路径回收手臂",
+      "not_for": "手臂被卡住时",
+      "validated": {
+        "results": {
+          "every round of the demo": "passed"
+        },
+        "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "suggest_base_pose",
+      "name": "选开关都够得着的底盘停靠位",
+      "kind": "classical",
+      "call": "skills.run(\"suggest_base_pose\", articulation=name, joint=joint, target=None, round_trip=True)",
+      "code": "mobile_panda_sim/skills/base_pose.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "无",
+      "applies_to": "抽屉和柜门；不移动机器人",
+      "not_for": "不考虑底盘受力，假设底盘不动",
+      "validated": {
+        "results": {
+          "two drawers and fridge door, open then close from the suggested pose": "open 12/12, close 12/12"
+        },
+        "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "rl_pick_move",
+      "name": "拿起物体并移到指定位置",
+      "kind": "rl",
+      "call": "skills.run(\"rl_pick_move\", object=name, goal=(x, y, z))",
+      "code": "mobile_panda_sim/skills/learned/pick_move.py",
+      "demo": "scripts/demo_rl_skills.py",
+      "docs": "training/README.md",
+      "checkpoint": "skills/policies/pick_move.pt",
+      "training": "training/train.py",
+      "preconditions": "底盘停在 DOCK；物体在玄关台工作区内",
+      "applies_to": "玄关台上的柠檬、梨、汤罐",
+      "not_for": "其他物体、其他台面、其他停靠位",
+      "validated": {
+        "results": {
+          "500 episodes": "83.6% (lemon 87.8%, pear 92.6%, soup_can 69.6%)",
+          "wheels, 20 per object": "lemon 19/20, pear 19/20, soup_can 15/20"
+        },
+        "criterion": "见 training/README.md",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "rl_place",
+      "name": "把手中物体放到指定位置",
+      "kind": "rl",
+      "call": "skills.run(\"rl_place\", target=(x, y))",
+      "code": "mobile_panda_sim/skills/learned/place.py",
+      "demo": "scripts/demo_rl_skills.py",
+      "docs": "training/README.md",
+      "checkpoint": "skills/policies/place.pt",
+      "training": "training/train.py",
+      "preconditions": "手里握着物体（来自 rl_pick_move），底盘停在 DOCK",
+      "applies_to": "手中的柠檬、梨、汤罐，放到玄关台工作区内",
+      "not_for": "其他物体和其他台面",
+      "validated": {
+        "results": {
+          "500 episodes": "86.6% (lemon 86.3%, pear 89.6%, soup_can 83.4%)",
+          "full run on wheels, 20 per object": "lemon 17/20, pear 16/20, soup_can 11/20"
+        },
+        "criterion": "见 training/README.md",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    }
+  ],
+  "external_skills": "见 skills/EXTERNAL_SKILLS.md 与 skills/external_skills.json"
+}

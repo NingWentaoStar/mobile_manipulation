@@ -1,0 +1,258 @@
+{
+  "checked_on": "2026-11-03",
+  "layers": {
+    "policy": "直接输出动作的技能策略",
+    "grasp_pose": "输出 6D 夹爪位姿，执行还需 IK 与运动规划",
+    "motion_planning": "运动规划器",
+    "vla": "端到端视觉-语言-动作或多任务模型"
+  },
+  "source_checked_meaning": "true：打开过官方仓库或模型页核对；false：只在搜索结果中看到",
+  "skills": [
+    {
+      "layer": "policy",
+      "name": "ManipGen",
+      "function": "抓取、放置、抓把手、打开、关闭（局部策略，腕部深度相机）",
+      "trained_in": "IsaacGym",
+      "weights": "HF minliu01/ManipGen",
+      "license": "MIT",
+      "source_checked": true,
+      "note": "需先把手移到目标附近；训练约 300×A100 一周，学生不宜复现",
+      "links": [
+        "https://github.com/mihdalal/manipgen",
+        "https://huggingface.co/minliu01/ManipGen"
+      ]
+    },
+    {
+      "layer": "policy",
+      "name": "IndustRealLib",
+      "function": "到位、抓销钉/齿轮、放置、销钉插孔、齿轮装配",
+      "trained_in": "IsaacGym (IndustRealSim)",
+      "weights": "随仓库提供",
+      "license": "见仓库 LICENSE",
+      "source_checked": true,
+      "note": "面向真机 frankapy + 任务空间阻抗控制，迁到 MuJoCo 需重新适配观测和控制器",
+      "links": [
+        "https://github.com/NVlabs/industreallib"
+      ]
+    },
+    {
+      "layer": "policy",
+      "name": "InsertAnything",
+      "function": "L 形孔、六边形孔插入",
+      "trained_in": "Isaac Lab (rl_games)",
+      "weights": "HF tOMRmA/InsertAnything-checkpoints（两个 .pth，26 维观测）",
+      "license": "BSD-3-Clause",
+      "source_checked": true,
+      "note": "只找到权重，没找到代码仓库",
+      "links": [
+        "https://huggingface.co/tOMRmA/InsertAnything-checkpoints"
+      ]
+    },
+    {
+      "layer": "policy",
+      "name": "Neural MP",
+      "function": "点云输入的避障到位",
+      "trained_in": "自建仿真场景",
+      "weights": "HF mihdalal/NeuralMP",
+      "license": "未确认",
+      "source_checked": true,
+      "note": "公开权重只含基础策略，不含测试时优化；“持物移动”未找到明确说明",
+      "links": [
+        "https://github.com/mihdalal/neuralmotionplanner",
+        "https://huggingface.co/mihdalal/NeuralMP"
+      ]
+    },
+    {
+      "layer": "policy",
+      "name": "MPiNets",
+      "function": "点云输入的避障运动",
+      "trained_in": "—",
+      "weights": "Zenodo mpinets_hybrid_expert.ckpt",
+      "license": "MIT",
+      "source_checked": true,
+      "note": "",
+      "links": [
+        "https://github.com/NVlabs/motion-policy-networks",
+        "https://zenodo.org/records/8319949"
+      ]
+    },
+    {
+      "layer": "policy",
+      "name": "robomimic 模型库",
+      "function": "Lift / Can / Square 等桌面任务（BC-RNN）",
+      "trained_in": "robosuite (MuJoCo)",
+      "weights": "官方 .pth 直链",
+      "license": "见仓库",
+      "source_checked": false,
+      "note": "需匹配 robomimic / robosuite 版本",
+      "links": [
+        "https://robomimic.github.io/docs/sources/model_zoo/robomimic_v0.1.md.txt"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "GraspGen",
+      "function": "扩散模型生成 6D 抓取位姿并评分",
+      "trained_in": "—",
+      "weights": "HF adithyamurali/GraspGenModels（含 Panda 配置）",
+      "license": "见仓库",
+      "source_checked": true,
+      "note": "只支持 Panda、Robotiq-2f-140、吸盘；GraspGenX 为多夹爪后继版本",
+      "links": [
+        "https://github.com/NVlabs/GraspGen",
+        "https://github.com/NVlabs/GraspGenX"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "M2T2",
+      "function": "抓取位姿 + 放置位姿，含语言条件版本",
+      "trained_in": "—",
+      "weights": "HF wentao-yuan/m2t2",
+      "license": "见仓库",
+      "source_checked": true,
+      "note": "能给“放在哪”",
+      "links": [
+        "https://github.com/NVlabs/M2T2"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "Contact-GraspNet",
+      "function": "点云 6D 抓取",
+      "trained_in": "—",
+      "weights": "Google Drive",
+      "license": "见仓库 License.pdf",
+      "source_checked": true,
+      "note": "TF 2.2 老环境；有非官方 PyTorch 移植",
+      "links": [
+        "https://github.com/NVlabs/contact_graspnet",
+        "https://github.com/elchun/contact_graspnet_pytorch"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "VGN",
+      "function": "杂乱场景抓取（TSDF 输入）",
+      "trained_in": "PyBullet",
+      "weights": "Google Drive（data 包内）",
+      "license": "BSD-3-Clause",
+      "source_checked": true,
+      "note": "最轻量",
+      "links": [
+        "https://github.com/ethz-asl/vgn"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "GIGA",
+      "function": "VGN 的改进版",
+      "trained_in": "—",
+      "weights": "UT Box data.zip（含 GIGA 与 VGN）",
+      "license": "MIT",
+      "source_checked": true,
+      "note": "",
+      "links": [
+        "https://github.com/UT-Austin-RPL/GIGA"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "Edge-Grasp-Network",
+      "function": "6D 抓取检测",
+      "trained_in": "PyBullet",
+      "weights": "随仓库提供",
+      "license": "MIT",
+      "source_checked": true,
+      "note": "训练用 Panda 夹爪",
+      "links": [
+        "https://github.com/HaojHuang/Edge-Grasp-Network"
+      ]
+    },
+    {
+      "layer": "grasp_pose",
+      "name": "AnyGrasp",
+      "function": "通用抓取检测",
+      "trained_in": "—",
+      "weights": "需按机器申请授权",
+      "license": "闭源",
+      "source_checked": true,
+      "note": "不适合分发给学生",
+      "links": [
+        "https://github.com/graspnet/anygrasp_sdk"
+      ]
+    },
+    {
+      "layer": "motion_planning",
+      "name": "cuRobo",
+      "function": "GPU 加速的无碰撞运动生成",
+      "trained_in": "—",
+      "weights": "不需要权重",
+      "license": "Apache-2.0",
+      "source_checked": true,
+      "note": "原生支持 Franka",
+      "links": [
+        "https://github.com/NVlabs/curobo"
+      ]
+    },
+    {
+      "layer": "motion_planning",
+      "name": "mplib",
+      "function": "采样式运动规划",
+      "trained_in": "—",
+      "weights": "不需要权重",
+      "license": "见 mplib",
+      "source_checked": true,
+      "note": "本项目的运动规划层",
+      "links": [
+        "https://github.com/haosulab/MPlib"
+      ]
+    },
+    {
+      "layer": "vla",
+      "name": "RoboCasa365",
+      "function": "365 个厨房任务、移动底盘 Panda（PandaOmron）",
+      "trained_in": "robosuite (MuJoCo)",
+      "weights": "LeRobot SmolVLA；官方 π0.5 / GR00T / DP 权重未核实",
+      "license": "代码 MIT，数据 CC-BY-4.0",
+      "source_checked": false,
+      "note": "和本平台形态最接近，但仿真器不同",
+      "links": [
+        "https://github.com/robocasa/robocasa",
+        "https://huggingface.co/docs/lerobot/robocasa.md"
+      ]
+    },
+    {
+      "layer": "vla",
+      "name": "openpi pi05_droid / pi0_droid",
+      "function": "桌面 Franka 语言指令操作",
+      "trained_in": "真机 DROID 数据",
+      "weights": "GCS gs://openpi-assets",
+      "license": "见仓库",
+      "source_checked": false,
+      "note": "需要大显存 GPU",
+      "links": [
+        "https://github.com/Physical-Intelligence/openpi"
+      ]
+    },
+    {
+      "layer": "vla",
+      "name": "OpenVLA-OFT",
+      "function": "LIBERO 中的 Panda 任务",
+      "trained_in": "LIBERO",
+      "weights": "HF moojink/...",
+      "license": "见仓库",
+      "source_checked": false,
+      "note": "只在 LIBERO 上微调过",
+      "links": [
+        "https://huggingface.co/moojink"
+      ]
+    }
+  ],
+  "not_found": [
+    {
+      "name": "TRG",
+      "note": "未搜到该项目，需要论文全名或 arXiv 号"
+    }
+  ]
+}
