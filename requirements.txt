@@ -2,3 +2,4 @@ mujoco==3.5.0
 mplib==0.1.1
 numpy<2
 torch
+pyyaml

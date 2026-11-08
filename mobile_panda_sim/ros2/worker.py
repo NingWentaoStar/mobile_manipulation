@@ -14,7 +14,6 @@ from ..geometry import GRIPPER_RANGE
 from .protocol import validate_command
 
 VELOCITY_TIMEOUT = 0.3
-SETTLE_SECONDS = 1.0
 PUBLISH_PERIOD = 0.1
 
 
@@ -49,7 +48,6 @@ class Simulation:
         self.velocity, self.velocity_deadline = (0.0, 0.0), 0.0
         self.arm_delta = None
         self.gripper = GRIPPER_RANGE[1]
-        self.active_until = 0.0
         self.images, self.images_step = None, -1
 
     def handle(self, cmd):
@@ -70,18 +68,15 @@ class Simulation:
             self.arm_delta = [float(x) for x in cmd["delta"]]
         elif kind == "gripper":
             self.gripper = float(cmd["width"])
-        self.active_until = now + SETTLE_SECONDS
 
     def tick(self):
+        """Advance physics one control period; controllers hold when no command is pending."""
         now = time.monotonic()
-        if now > self.active_until:
-            return False
         linear, angular = self.velocity if now <= self.velocity_deadline else (0.0, 0.0)
         self.scene.step(linear, angular, self.arm_delta, self.gripper)
         self.arm_delta = None
         self.steps += 1
         self.sim_time += self.control_timestep
-        return True
 
     def snapshot(self):
         scene = self.scene
@@ -93,7 +88,7 @@ class Simulation:
         chassis = scene.pose(scene.chassis)
         qpos = scene.joint_positions().tolist()
         self.send("state", trajectory=self.trajectory, steps=self.steps, sim_time=round(self.sim_time, 4),
-                  running=time.monotonic() <= self.active_until, base=self.args.base, joint_names=self.joint_names,
+                  running=True, base=self.args.base, joint_names=self.joint_names,
                   images=self.images, base_pose={**pose_dict(*chassis), "yaw": yaw_of(chassis[1])},
                   root_pose=pose_dict(*scene.pose(scene.root)), tcp_pose=pose_dict(*scene.tcp_pose()),
                   joint_positions=qpos, joint_velocities=scene.joint_velocities().tolist(), gripper_width=qpos[-2:],

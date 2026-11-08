@@ -1,8 +1,8 @@
-# 移动 Panda 仿真 ROS 2 接口
+# 基于差速移动+Panda机械臂的mujoco仿真
 
-在 MuJoCo 中加载一台**差速底盘 + Franka Panda** 的移动机械臂和一个住宅场景（厨房 + 餐厅 + 客厅），通过 ROS 2 开放控制和感知接口，供学生编写 Agent。附带技能库：传统方法的抓取、放置、开关抽屉和柜门，以及两个用强化学习训练的技能。
+在 MuJoCo 中加载一台**差速底盘 + Franka Panda** 的移动机械臂和一个住宅场景（厨房 + 餐厅 + 客厅），通过 ROS 2 开放控制和感知接口。附带技能库：传统方法的抓取、放置、开关抽屉和柜门，以及两个用强化学习训练的技能。
 
-## 交付内容
+## 主要内容
 
 | 内容 | 位置 |
 |---|---|
@@ -29,7 +29,7 @@
 
 另有相机内参、状态 JSON、场景布局、stop/reset 服务，见接口说明。
 
-launch 启动后加载场景、发布话题，然后等待命令：**不执行任务，也不推进物理时间**，直到收到控制命令。
+launch 启动后加载场景、发布话题并**持续运行物理仿真**（不执行任何任务）。没有控制命令时，控制器保持机器人当前位置；收到命令后按新指令运动。
 
 ## 场景
 
@@ -55,12 +55,12 @@ launch 启动后加载场景、发布话题，然后等待命令：**不执行�
 ## 安装
 
 ```bash
-git clone <本仓库地址> mobile-panda-agent
-cd mobile-panda-agent
+git clone git@github.com:PIControlLab/mobile_manipulation.git
+cd mobile_manipulation
 
 # 1. Python 环境和 Panda 模型（约 36 MB）
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 .venv/bin/python scripts/download_menagerie.py
 
 # 2. ROS 2 工作区
@@ -70,25 +70,25 @@ cd ros2_ws && colcon build --symlink-install && cd ..
 
 ## 启动
 
-在仓库根目录：
-
+在文件“~/.bashrc”中，添加
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ros2_ws/install/setup.bash
-ros2 launch mobile_panda_bridge simulation.launch.py                # 打开 MuJoCo 窗口
-ros2 launch mobile_panda_bridge simulation.launch.py viewer:=false rviz:=true
+source ~/mobile_manipulation/setup.sh
+```
+退出所有目录。
+
+在仓库根目录（选择其中一个）：
+```bash
+ros2 launch mobile_panda_bridge simulation.launch.py                # 只加载环境
+ros2 launch mobile_panda_bridge simulation.launch.py rviz:=true     # 环境+机械臂
 ros2 launch mobile_panda_bridge simulation.launch.py base:=planar start_x:=0.0 start_y:=0.0 start_yaw:=0.0
 ```
+仿真一直在运行，由PID控制器锁在当前的位置。当收到控制指令时，切换至控制指令。
 
-不在仓库根目录启动时，加 `project_root:=/path/to/mobile-panda-agent`，或设置环境变量 `MOBILE_PANDA_ROOT`。launch 优先用仓库里的 `.venv`，日志里会打印用的是哪个解释器；要换时用 `sim_python:=...` 或 `MOBILE_PANDA_SIM_PYTHON` 指定。
 
-检查接口（另开终端，launch 运行中）：
-
+测试接口，另开终端：
 ```bash
-source /opt/ros/jazzy/setup.bash && source ros2_ws/install/setup.bash
 ros2 run mobile_panda_bridge teleop_check
 ```
-
 它会接收所有传感器话题，然后让底盘前进、转向，动一个关节，开合夹爪，并检查位姿和关节状态有没有响应，最后输出 `"passed": true`。
 
 只看 URDF（不启动仿真）：`ros2 launch mobile_panda_description display.launch.py base:=wheels`

@@ -91,7 +91,7 @@ class Bridge(Node):
         self.parent = os.getppid()
         self.create_timer(1.0, self.check_parent)
         self.status_pub.publish(String(data=json.dumps({"type": "starting"})))
-        self.get_logger().info("Loading scene; physics stays paused until a control command arrives")
+        self.get_logger().info("Loading scene; physics runs continuously, commands override the current targets")
 
     def send(self, command):
         if not self.ready or self.process.poll() is not None:
@@ -176,7 +176,7 @@ class Bridge(Node):
                 continue
             if kind == "ready":
                 self.ready, self.intrinsics = True, message.get("cameras", {})
-                self.get_logger().info("Scene ready; waiting for commands on "
+                self.get_logger().info("Scene ready; command topics: "
                                        f"{NS}/cmd_vel, {NS}/arm_joint_delta, {NS}/gripper")
             elif kind in ("fatal", "worker_exited"):
                 self.ready = False
