@@ -3,7 +3,7 @@ import math
 
 from ..geometry import GRIPPER_RANGE, MAX_ANGULAR, MAX_JOINT_DELTA, MAX_LINEAR
 
-KINDS = {"velocity", "arm", "gripper", "stop", "reset", "shutdown"}
+KINDS = {"velocity", "arm", "gripper", "stop", "reset", "skill", "shutdown"}
 
 
 def finite(value, limit, name):
@@ -40,4 +40,9 @@ def validate_command(command):
         low, high = GRIPPER_RANGE
         if not math.isfinite(width) or not low - 1e-12 <= width <= high + 1e-12:
             raise ValueError(f"gripper target must be within [{low}, {high}] m per finger")
+    elif kind == "skill":
+        if not isinstance(command.get("name"), str) or not command["name"]:
+            raise ValueError("skill needs a non-empty string `name`")
+        if not isinstance(command.get("params") or {}, dict):
+            raise ValueError("skill `params` must be a JSON object")
     return command

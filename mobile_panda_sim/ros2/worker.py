@@ -30,6 +30,22 @@ def yaw_of(q):
     return math.atan2(2*(q[0]*q[3] + q[1]*q[2]), 1 - 2*(q[2]**2 + q[3]**2))
 
 
+def jsonable(value):
+    """Recursively convert numpy arrays and scalars so skill details can be sent as JSON."""
+    if isinstance(value, dict):
+        return {key: jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [jsonable(item) for item in value]
+    if hasattr(value, "tolist"):
+        return jsonable(value.tolist())
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except (TypeError, ValueError):
+            return str(value)
+    return value
+
+
 class Simulation:
     def __init__(self, args, send):
         from mobile_panda_sim.mj.sim import MujocoScene
@@ -39,16 +55,22 @@ class Simulation:
         self.scene = MujocoScene(args.base, args.start, viewer=args.viewer)
         self.joint_names = self.scene.joint_names
         self.control_timestep = self.scene.control_timestep
+        self.skills = None   # created on the first skill request (imports mplib/torch)
         self.reset()
 
     def reset(self):
-        self.scene.reset()
+        if self.skills is not None:
+            self.skills.reset()
+        else:
+            self.scene.reset()
         self.trajectory += 1
         self.steps, self.sim_time = 0, 0.0
         self.velocity, self.velocity_deadline = (0.0, 0.0), 0.0
         self.arm_delta = None
         self.gripper = GRIPPER_RANGE[1]
         self.images, self.images_step = None, -1
+        self.last_publish = 0.0
+        self.last_skill_step = None
 
     def handle(self, cmd):
         validate_command(cmd)
@@ -60,6 +82,9 @@ class Simulation:
         if kind == "reset":
             self.reset()
             self.send("reset_complete", trajectory=self.trajectory)
+            return
+        if kind == "skill":
+            self.run_skill(cmd)
             return
         if kind == "velocity":
             self.velocity = (float(cmd.get("linear", 0)), float(cmd.get("angular", 0)))
@@ -77,6 +102,48 @@ class Simulation:
         self.arm_delta = None
         self.steps += 1
         self.sim_time += self.control_timestep
+
+    def run_skill(self, cmd):
+        """Run a skill on this scene (skills drive physics themselves while they run)."""
+        request_id = cmd.get("request_id")
+        self.velocity, self.velocity_deadline, self.arm_delta = (0.0, 0.0), 0.0, None
+        try:
+            if self.skills is None:
+                from mobile_panda_sim.skills import SkillLibrary
+                self.skills = SkillLibrary(self.scene, on_step=self.skill_step, on_idle=self.publish_if_due)
+            self.last_skill_step = time.monotonic()
+            result = self.skills.run(cmd["name"], **(cmd.get("params") or {}))
+            payload = dict(success=result.success, message=result.message, info=jsonable(result.info))
+        except KeyError as error:
+            payload = dict(success=False, message=str(error), info={})
+        except Exception as error:
+            payload = dict(success=False, message=f"{type(error).__name__}: {error}", info={})
+        if self.skills is not None:
+            # Keep the gripper where the skill left it; otherwise the next tick reopens it and drops the object.
+            low, high = GRIPPER_RANGE
+            self.gripper = low + (self.skills.context.gripper + 1) / 2 * (high - low)
+        try:
+            self.send("skill_result", request_id=request_id, **payload)
+        except (TypeError, ValueError):
+            self.send("skill_result", request_id=request_id, success=payload["success"],
+                      message=payload["message"], info={})
+        self.publish_if_due()
+
+    def skill_step(self):
+        """One control step taken by a skill (the skill drives the scene itself), paced in real time."""
+        self.steps += 1
+        self.sim_time += self.control_timestep
+        self.publish_if_due()
+        now = time.monotonic()
+        if self.last_skill_step is not None:
+            time.sleep(max(0.0, self.control_timestep - (now - self.last_skill_step)))
+        self.last_skill_step = time.monotonic()
+
+    def publish_if_due(self):
+        now = time.monotonic()
+        if now - self.last_publish >= PUBLISH_PERIOD:
+            self.last_publish = now
+            self.snapshot()
 
     def snapshot(self):
         scene = self.scene
@@ -125,7 +192,6 @@ def main():
             send("scene", layout=sim.scene.layout())
             send("ready", base=args.base, joint_names=sim.joint_names,
                  control_timestep=sim.control_timestep, cameras=sim.scene.camera_intrinsics())
-            last_publish = 0.0
             while True:
                 start = time.monotonic()
                 shutdown = False
@@ -144,9 +210,7 @@ def main():
                 if shutdown:
                     break
                 sim.tick()
-                if start - last_publish >= PUBLISH_PERIOD:
-                    sim.snapshot()
-                    last_publish = start
+                sim.publish_if_due()
                 time.sleep(max(0.0, sim.control_timestep - (time.monotonic() - start)))
         except KeyboardInterrupt:
             pass

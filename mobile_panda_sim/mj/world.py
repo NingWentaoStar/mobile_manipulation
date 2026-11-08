@@ -46,6 +46,10 @@ class MujocoWorld:
     def link0_pose(self):
         return Pose(self.data.xpos[self.link0], self.data.xquat[self.link0])
 
+    def chassis_pose(self):
+        """Pose of chassis_link in the map frame (x forward, y left, z up)."""
+        return Pose(*self.scene.pose(self.scene.chassis))
+
     def tcp_pose(self):
         return Pose(*self.scene.tcp_pose())
 

@@ -25,7 +25,7 @@
       "id": "place",
       "name": "把手中物体放到台面上",
       "kind": "classical",
-      "call": "skills.run(\"place\", target=(x, y), height=None)",
+      "call": "skills.run(\"place\", target=(x, y), frame=\"base\")",
       "code": "mobile_panda_sim/skills/place.py",
       "demo": "scripts/demo_manipulation.py",
       "docs": "docs/manipulation.md",
@@ -79,15 +79,15 @@
       }
     },
     {
-      "id": "home",
-      "name": "手臂回到收起姿态",
+      "id": "reset_arm",
+      "name": "手臂回到默认姿态",
       "kind": "classical",
-      "call": "skills.run(\"home\")",
-      "code": "mobile_panda_sim/skills/home.py",
+      "call": "skills.run(\"reset_arm\")",
+      "code": "mobile_panda_sim/skills/reset_arm.py",
       "demo": "scripts/demo_manipulation.py",
       "docs": "docs/manipulation.md",
       "preconditions": "底盘停稳",
-      "applies_to": "任何位置，沿无碰撞路径回收手臂",
+      "applies_to": "任何位置，沿无碰撞路径把手臂收回默认姿态",
       "not_for": "手臂被卡住时",
       "validated": {
         "results": {
@@ -95,6 +95,25 @@
         },
         "criterion": "技能返回成功，且没有碰动其他物体超过 2 cm",
         "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-05"
+      }
+    },
+    {
+      "id": "navigate",
+      "name": "底盘导航到指定位姿",
+      "kind": "classical",
+      "call": "skills.run(\"navigate\", target=(x, y, yaw))",
+      "code": "mobile_panda_sim/skills/navigate.py",
+      "demo": "scripts/demo_manipulation.py",
+      "docs": "docs/manipulation.md",
+      "preconditions": "目标位姿可达；底盘能运动",
+      "applies_to": "空旷地面上的目标位姿 (x, y, yaw)，yaw 可省略",
+      "not_for": "需要绕开家具的路径：只做直线反馈控制，没有避障",
+      "validated": {
+        "results": {
+          "默认起点 -> 玄关台 / 台柜中层 / 冰箱": "3/3"
+        },
+        "criterion": "技能返回成功，终点误差 < 2.5 cm、< 0.035 rad",
+        "environment": "Ubuntu 22.04, MuJoCo 3.5.0, wheels base, 2026-11-08"
       }
     },
     {

@@ -65,6 +65,31 @@ ros2 launch ──> mobile_panda_bridge（系统 Python，rclpy）
 | `/mobile_panda/stop` | `std_srvs/Trigger` | 清除速度和关节增量命令（保持夹爪目标） |
 | `/mobile_panda/reset` | `std_srvs/Trigger` | 重置场景：物品回到初始位置，抽屉和门关上，机器人回到起点 |
 
+## 技能（skill）
+
+技能在仿真 worker 进程内执行，和当前仿真是同一个场景，不会另起一个仿真。请求和结果都是 JSON 字符串：
+
+| 话题 | 类型 | 方向 |
+|---|---|---|
+| `/mobile_panda/skill_request` | `std_msgs/String`（JSON） | 订阅：`{"request_id": "...", "name": "pick", "params": {"object": "lemon"}}` |
+| `/mobile_panda/skill_result` | `std_msgs/String`（JSON） | 发布：`{"request_id": "...", "success": true, "message": "pick(lemon) done", "info": {...}}` |
+
+抓取和开关技能不含导航：先用 `navigate` 技能把底盘开到要求的位姿，例如 `{"name": "navigate", "params": {"target": [-2.95, -1.15, 3.1416]}}`（yaw 可省略）。技能执行期间由技能驱动物理，`/mobile_panda/state` 继续发布；期间不要同时发底盘/手臂指令，排队中的指令会在技能结束后执行。
+
+命令行：
+
+```bash
+ros2 run mobile_panda_bridge run_skill reset_arm
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
+ros2 run mobile_panda_bridge run_skill pick --param object=lemon
+ros2 run mobile_panda_bridge run_skill place --param target='[0.40, -0.60]'
+ros2 run mobile_panda_bridge run_skill open --param articulation=kitchen_counter --param joint=middle_slide_top
+```
+
+`place` 的 `target` 默认相对底盘（`chassis_link`）：x 向前、y 向左，单位 m；传 `--param frame=map` 时按世界坐标解释。
+
+`--param VALUE` 会尽量按 JSON 解析，列表和数字可直接写，例如 `--param target='[-3.40, -1.25]'`。各技能的参数、前提条件和适用范围见 [skills/README.md](../skills/README.md)。
+
 ## 例子
 
 ```bash

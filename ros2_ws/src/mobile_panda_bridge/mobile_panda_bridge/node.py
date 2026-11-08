@@ -58,6 +58,7 @@ class Bridge(Node):
         self.state_pub = self.create_publisher(String, f"{NS}/state", sticky)
         self.status_pub = self.create_publisher(String, f"{NS}/status", sticky)
         self.scene_pub = self.create_publisher(String, f"{NS}/scene_info", sticky)
+        self.skill_result_pub = self.create_publisher(String, f"{NS}/skill_result", 10)
         self.pose_pub = self.create_publisher(PoseStamped, f"{NS}/base_pose", qos_profile_sensor_data)
         self.joints_pub = self.create_publisher(JointState, f"{NS}/joint_states", qos_profile_sensor_data)
         self.tf_broadcaster = TransformBroadcaster(self)
@@ -68,6 +69,7 @@ class Bridge(Node):
         self.create_subscription(Twist, f"{NS}/cmd_vel", self.on_velocity, 1)
         self.create_subscription(Float64MultiArray, f"{NS}/arm_joint_delta", self.on_arm, 1)
         self.create_subscription(Float64, f"{NS}/gripper", self.on_gripper, 1)
+        self.create_subscription(String, f"{NS}/skill_request", self.on_skill_request, 10)
         self.create_service(Trigger, f"{NS}/stop", lambda req, res: self.trigger("stop", res))
         self.create_service(Trigger, f"{NS}/reset", lambda req, res: self.trigger("reset", res))
 
@@ -125,6 +127,27 @@ class Bridge(Node):
         except ValueError as error:
             self.reject(str(error))
 
+    def on_skill_request(self, msg):
+        try:
+            request = json.loads(msg.data)
+        except ValueError as error:
+            request, problem = None, f"skill request is not JSON: {error}"
+        else:
+            problem = None if isinstance(request, dict) and isinstance(request.get("name"), str) \
+                else "skill request needs a JSON object with a string `name`"
+        if problem:
+            self.publish_skill_result({"request_id": request.get("request_id") if isinstance(request, dict) else None,
+                                       "success": False, "message": problem, "info": {}})
+            return
+        try:
+            self.send({"kind": "skill", **request})
+        except ValueError as error:
+            self.publish_skill_result({"request_id": request.get("request_id"), "success": False,
+                                       "message": str(error), "info": {}})
+
+    def publish_skill_result(self, payload):
+        self.skill_result_pub.publish(String(data=json.dumps(payload)))
+
     def trigger(self, kind, response):
         try:
             self.send({"kind": kind})
@@ -177,12 +200,18 @@ class Bridge(Node):
             if kind == "ready":
                 self.ready, self.intrinsics = True, message.get("cameras", {})
                 self.get_logger().info("Scene ready; command topics: "
-                                       f"{NS}/cmd_vel, {NS}/arm_joint_delta, {NS}/gripper")
+                                       f"{NS}/cmd_vel, {NS}/arm_joint_delta, {NS}/gripper; "
+                                       f"skills: {NS}/skill_request")
             elif kind in ("fatal", "worker_exited"):
                 self.ready = False
                 self.get_logger().error(json.dumps(message))
             elif kind == "rejected":
                 self.get_logger().warn(message.get("reason", ""), throttle_duration_sec=1.0)
+            elif kind == "skill_result":
+                self.publish_skill_result(message)
+                self.get_logger().info(f"skill [{message.get('request_id')}]: success={message.get('success')} "
+                                       f"{message.get('message', '')}")
+                continue
             self.status_pub.publish(String(data=json.dumps(message)))
         with self.lock:
             state, self.latest_state = self.latest_state, None

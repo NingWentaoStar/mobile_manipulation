@@ -78,12 +78,11 @@ source ~/mobile_manipulation/setup.sh
 
 在仓库根目录（选择其中一个）：
 ```bash
-ros2 launch mobile_panda_bridge simulation.launch.py                # 只加载环境
-ros2 launch mobile_panda_bridge simulation.launch.py rviz:=true     # 环境+机械臂
+ros2 launch mobile_panda_bridge simulation.launch.py                
+ros2 launch mobile_panda_bridge simulation.launch.py rviz:=true     
 ros2 launch mobile_panda_bridge simulation.launch.py base:=planar start_x:=0.0 start_y:=0.0 start_yaw:=0.0
 ```
 仿真一直在运行，由PID控制器锁在当前的位置。当收到控制指令时，切换至控制指令。
-
 
 测试接口，另开终端：
 ```bash
@@ -91,18 +90,25 @@ ros2 run mobile_panda_bridge teleop_check
 ```
 它会接收所有传感器话题，然后让底盘前进、转向，动一个关节，开合夹爪，并检查位姿和关节状态有没有响应，最后输出 `"passed": true`。
 
-只看 URDF（不启动仿真）：`ros2 launch mobile_panda_description display.launch.py base:=wheels`
-
 ## 技能库
 
 每个技能能做和不能做的事见 [skills/README.md](skills/README.md#适用范围)。
 
+例子
 ```bash
-.venv/bin/python scripts/demo_manipulation.py all --viewer      # 传统方法：抓放物品、开关抽屉和冰箱门
-.venv/bin/python scripts/demo_rl_skills.py                      # 强化学习：开到玄关台，拿起物体，放到指定位置
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
+ros2 run mobile_panda_bridge run_skill pick --param object=lemon
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-1.15, 1.70, 1.98]'
+ros2 run mobile_panda_bridge run_skill place --param target='[0.72, 0.0]'
+ros2 run mobile_panda_bridge run_skill open --param articulation=kitchen_counter --param joint=middle_slide_top
+ros2 run mobile_panda_bridge run_skill pick --param object=lemon
+ros2 run mobile_panda_bridge run_skill place --param target='[0.55, 0.0]'
+ros2 run mobile_panda_bridge run_skill close --param articulation=kitchen_counter --param joint=middle_slide_top
+ros2 run mobile_panda_bridge run_skill reset_arm
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
 ```
 
-技能目前通过 Python 调用，**还没有接到 ROS 话题上**；学生的 Agent 通过 ROS 控制机器人。
+技能在仿真 worker 进程内执行，和已启动的 ROS 仿真共用同一个场景，不会另起仿真。也可以直接向 `/mobile_panda/skill_request` 发 JSON 请求，结果在 `/mobile_panda/skill_result`。
 
 ## 修改模型
 
@@ -120,15 +126,10 @@ env -u PYTHONPATH .venv/bin/python -m pytest tests -q
 - 轮式底盘的支撑球离地 1 mm，车身有约 0.25° 的翘动。
 - 住宅场景的数据是转换好的，仓库里没有重新生成它的工具。
 - 没有障碍物地图话题；家具占地范围在 `/mobile_panda/scene_info`。
-- 技能只能在 Python 里调用，还没有接到 ROS 话题上。
+- 抓取和开关技能不含导航：先用 `navigate` 技能把底盘开到技能要求的位姿，对照表见 [skills/README.md](skills/README.md#适用范围)。
 - RViz 加载 `.glb` 网格时日志里没有报错，但还没有人眼确认显示效果。
 
-## 测试环境
-
-所有实测数字都来自 Ubuntu 22.04 + ROS 2 Humble，代码另在 Python 3.12 上测过。**Ubuntu 24.04 + ROS 2 Jazzy 还没有实测**，第一次部署时请跑一遍 `teleop_check` 和测试。
-
 ## 来源
-
 - Panda 模型来自 [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie)（Apache-2.0），由 `scripts/download_menagerie.py` 下载。
 - Panda 网格、`panda_v2.urdf` 和 `panda_v2.srdf` 来自 [ManiSkill](https://github.com/haosulab/ManiSkill)（Apache-2.0）。
 - 住宅场景使用 ReplicaCAD（CC BY-NC 4.0，**仅限非商业用途**）和 YCB 物品模型（CC BY 4.0），见 [assets/mujoco_kitchen/ATTRIBUTION.md](assets/mujoco_kitchen/ATTRIBUTION.md)。
