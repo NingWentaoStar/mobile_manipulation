@@ -10,10 +10,10 @@ import mujoco
 import numpy as np
 import pytest
 
-from mobile_panda_sim.geometry import ARM_REST
-from mobile_panda_sim.mj.model import ARM_JOINTS
-from mobile_panda_sim.mj.sim import MujocoScene
-from mobile_panda_sim.paths import REPO, ros_urdf
+from skills.geometry import ARM_REST
+from skills.mj.model import ARM_JOINTS
+from skills.mj.sim import MujocoScene
+from skills.paths import REPO, ros_urdf
 
 REST_TCP = {"wheels": (-2.55, -1.335, 1.0964), "planar": (-2.55, -1.335, 1.0894)}
 BASE_JOINTS = {"wheels": ["left_wheel_joint", "right_wheel_joint"], "planar": ["base_x_joint", "base_y_joint", "base_yaw_joint"]}
@@ -150,7 +150,7 @@ def test_reset_restores_scene(wheels):
 
 def test_worker_state():
     env = {**os.environ, "PYTHONPATH": str(REPO)}
-    process = subprocess.Popen([sys.executable, "-u", "-m", "mobile_panda_sim.ros2.worker"], cwd=REPO, env=env,
+    process = subprocess.Popen([sys.executable, "-u", "-m", "skills.ros2.worker"], cwd=REPO, env=env,
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
     try:
         seen = {}
@@ -171,7 +171,7 @@ def test_worker_state():
 @pytest.fixture(scope="module")
 def library():
     pytest.importorskip("mplib")
-    from mobile_panda_sim.skills import SkillLibrary
+    from skills.library import SkillLibrary
     scene = MujocoScene("wheels")
     yield SkillLibrary(scene)
     scene.close()
@@ -235,8 +235,8 @@ def test_suggested_base_pose_opens_and_closes(library):
 
 
 def test_policy_observation_matches_training():
-    from mobile_panda_sim.skills import SkillLibrary
-    from mobile_panda_sim.skills.learned.tasks import DOCK, PickMoveTask
+    from skills.library import SkillLibrary
+    from skills.library.learned.tasks import DOCK, PickMoveTask
     task = PickMoveTask(1, seed=3, threads=1)
     expected = task.observe()[0]
     data = task.datas[0]
@@ -256,7 +256,7 @@ def test_policy_observation_matches_training():
 
 
 def test_task_resets_and_rewards():
-    from mobile_panda_sim.skills.learned.tasks import ACTION_SIZE, MAX_STEPS, OBS_SIZE, PickMoveTask
+    from skills.library.learned.tasks import ACTION_SIZE, MAX_STEPS, OBS_SIZE, PickMoveTask
     task = PickMoveTask(4, seed=0, threads=1)
     obs = task.reset()
     assert obs.shape == (4, OBS_SIZE) and np.isfinite(obs).all()
@@ -268,7 +268,7 @@ def test_task_resets_and_rewards():
 
 
 def test_closed_fingers_on_top_do_not_count_as_a_grasp():
-    from mobile_panda_sim.skills.learned.tasks import MIN_FINGER_GAP, PickMoveTask, is_grasped
+    from skills.library.learned.tasks import MIN_FINGER_GAP, PickMoveTask, is_grasped
     task = PickMoveTask(1, seed=0, threads=1)
     data = task.datas[0]
     data.qpos[task.finger_q] = 0.0
@@ -278,7 +278,7 @@ def test_closed_fingers_on_top_do_not_count_as_a_grasp():
 
 
 def test_moving_a_neighbour_fails_the_episode():
-    from mobile_panda_sim.skills.learned.tasks import ACTION_SIZE, PickMoveTask
+    from skills.library.learned.tasks import ACTION_SIZE, PickMoveTask
     task = PickMoveTask(2, seed=0, threads=1)
     data = task.datas[0]
     address = task.addresses["cracker_box"]
@@ -290,8 +290,8 @@ def test_moving_a_neighbour_fails_the_episode():
 
 
 def test_trained_policies_run_on_the_robot():
-    from mobile_panda_sim.skills import SkillLibrary
-    from mobile_panda_sim.skills.learned.tasks import DOCK, TABLE_Z
+    from skills.library import SkillLibrary
+    from skills.library.learned.tasks import DOCK, TABLE_Z
     scene = MujocoScene("planar", DOCK)
     skills = SkillLibrary(scene)
     skills.reset()

@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
 ARGS = {
-    "project_root": (os.environ.get("MOBILE_PANDA_ROOT", os.getcwd()), str, "repository root (contains mobile_panda_sim/)"),
+    "project_root": (os.environ.get("MOBILE_PANDA_ROOT", os.getcwd()), str, "repository root (contains skills/)"),
     "sim_python": (os.environ.get("MOBILE_PANDA_SIM_PYTHON", ""), str,
                    "interpreter with mujoco; empty = the repository's .venv, or a Conda environment with mujoco"),
     "base": ("wheels", str, "wheels (physical differential drive) or planar (virtual x/y/yaw joints)"),

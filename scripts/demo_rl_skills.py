@@ -13,10 +13,10 @@ import time
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from mobile_panda_sim.geometry import ARM_REST  # noqa: E402
-from mobile_panda_sim.mj.sim import MujocoScene  # noqa: E402
-from mobile_panda_sim.skills import SkillLibrary  # noqa: E402
-from mobile_panda_sim.skills.learned.tasks import CLEARANCE, DOCK, NEIGHBOURS, TABLE_Z, TARGETS, ZONE_X, ZONE_Y  # noqa: E402
+from skills.geometry import ARM_REST  # noqa: E402
+from skills.mj.sim import MujocoScene  # noqa: E402
+from skills.library import SkillLibrary  # noqa: E402
+from skills.library.learned.tasks import CLEARANCE, DOCK, NEIGHBOURS, TABLE_Z, TARGETS, ZONE_X, ZONE_Y  # noqa: E402
 
 HOLD_HEIGHT = 0.15
 

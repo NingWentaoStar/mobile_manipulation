@@ -48,7 +48,7 @@ def jsonable(value):
 
 class Simulation:
     def __init__(self, args, send):
-        from mobile_panda_sim.mj.sim import MujocoScene
+        from skills.mj.sim import MujocoScene
 
         self.args, self.send = args, send
         self.trajectory = 0
@@ -109,7 +109,7 @@ class Simulation:
         self.velocity, self.velocity_deadline, self.arm_delta = (0.0, 0.0), 0.0, None
         try:
             if self.skills is None:
-                from mobile_panda_sim.skills import SkillLibrary
+                from skills.library import SkillLibrary
                 self.skills = SkillLibrary(self.scene, on_step=self.skill_step, on_idle=self.publish_if_due)
             self.last_skill_step = time.monotonic()
             result = self.skills.run(cmd["name"], **(cmd.get("params") or {}))

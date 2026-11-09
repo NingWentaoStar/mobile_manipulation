@@ -1,6 +1,6 @@
 # 仿真模型
 
-代码在 `mobile_panda_sim/mj/`：
+代码在 `skills/mj/`：
 
 | 文件 | 内容 |
 |---|---|

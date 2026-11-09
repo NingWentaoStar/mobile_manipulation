@@ -21,7 +21,7 @@
 
 ## 任务
 
-任务在 `mobile_panda_sim/skills/learned/tasks.py`，部署在 `common.py`、`pick_move.py` 和 `place.py`。
+任务在 `skills/library/learned/tasks.py`，部署在 `common.py`、`pick_move.py` 和 `place.py`。
 
 | 项目 | 内容 |
 |---|---|

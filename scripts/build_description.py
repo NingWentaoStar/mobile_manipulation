@@ -9,9 +9,9 @@ import sys
 import xml.etree.ElementTree as E
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from mobile_panda_sim.geometry import (HEIGHT, RADIUS, TRACK, BASE_CAMERA_EYE, BASE_CAMERA_TARGET,
+from skills.geometry import (HEIGHT, RADIUS, TRACK, BASE_CAMERA_EYE, BASE_CAMERA_TARGET,
                                        HAND_MOUNT_XYZ, HAND_MOUNT_RPY, HAND_CAMERA_XYZ)
-from mobile_panda_sim.paths import DESCRIPTION, PACKAGE, PANDA_URDF
+from skills.paths import DESCRIPTION, PACKAGE, PANDA_URDF
 
 MESH_URI = f"package://{PACKAGE}/meshes/franka"
 

@@ -1,7 +1,7 @@
 """skills/catalog.json matches the code and the files it names."""
 import json
 
-from mobile_panda_sim.paths import REPO
+from skills.paths import REPO
 
 SKILLS = json.loads((REPO / "skills/catalog.json").read_text(encoding="utf-8"))["local_skills"]
 REQUIRED = {"id", "name", "kind", "call", "code", "demo", "docs", "preconditions", "applies_to", "not_for", "validated"}
@@ -30,7 +30,7 @@ def test_each_entry_names_a_skill_in_its_module():
 
 def test_every_skill_module_is_listed():
     listed = {skill["code"] for skill in SKILLS}
-    folder = REPO / "mobile_panda_sim/skills"
+    folder = REPO / "skills/library"
     for path in [*folder.glob("*.py"), *(folder / "learned").glob("*.py")]:
         if "\n@register\n" in path.read_text(encoding="utf-8"):
             assert path.relative_to(REPO).as_posix() in listed, path.name

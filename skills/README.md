@@ -1,10 +1,10 @@
 # 技能库
 
-技能代码在 `mobile_panda_sim/skills/`，每个技能一个模块，用同一个入口调用：
+技能代码在 `skills/library/`，每个技能一个模块，用同一个入口调用：
 
 ```python
-from mobile_panda_sim.mj.sim import MujocoScene
-from mobile_panda_sim.skills import SkillLibrary
+from skills.mj.sim import MujocoScene
+from skills.library import SkillLibrary
 
 scene = MujocoScene("wheels")
 skills = SkillLibrary(scene)
@@ -18,7 +18,7 @@ print(skills.list())                                       # 所有技能和它�
 ```
 
 ```text
-mobile_panda_sim/skills/
+skills/library/
 ├── base.py            技能基类、SkillResult、SkillError
 ├── registry.py        SkillLibrary：按名字查找和运行
 ├── context.py         技能共用的：仿真、规划器、夹爪、手里的物体、基本动作
@@ -68,7 +68,7 @@ class Wave(Skill):
         return dict(times=times)      # 成功时返回细节，失败时抛 SkillError
 ```
 
-然后在 `mobile_panda_sim/skills/__init__.py` 里导入这个模块，在 `skills/catalog.json` 里加一条，就能 `skills.run("wave", times=3)`。`tests/test_catalog.py` 和 `tests/test_mujoco.py` 会检查目录和代码是否一致。
+然后在 `skills/library/__init__.py` 里导入这个模块，在 `skills/catalog.json` 里加一条，就能 `skills.run("wave", times=3)`。`tests/test_catalog.py` 和 `tests/test_mujoco.py` 会检查目录和代码是否一致。
 
 ## 适用范围
 
@@ -108,7 +108,7 @@ ros2 run mobile_panda_bridge run_skill pick --param object=lemon
 ```
 
 ```python
-from mobile_panda_sim.skills.learned.tasks import DOCK, TABLE_Z
+from skills.library.learned.tasks import DOCK, TABLE_Z
 
 skills.reset(DOCK)
 if skills.run("rl_pick_move", object="pear", goal=(-3.40, -1.50, TABLE_Z + 0.15)):   # 目标是物体中心的世界坐标

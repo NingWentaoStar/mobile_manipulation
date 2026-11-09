@@ -1,7 +1,7 @@
 """Command validation (no simulator needed)."""
 import pytest
 
-from mobile_panda_sim.ros2.protocol import validate_command
+from skills.ros2.protocol import validate_command
 
 
 def test_valid_commands():

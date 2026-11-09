@@ -6,14 +6,17 @@
 
 | 内容 | 位置 |
 |---|---|
-| 机器人 URDF 与网格 | `ros2_ws/src/mobile_panda_description/` |
-| launch：只加载场景并建立话题 | `ros2_ws/src/mobile_panda_bridge/launch/simulation.launch.py` |
-| ROS 2 桥接节点、示例客户端 | `ros2_ws/src/mobile_panda_bridge/` |
-| 仿真模型和场景 | `mobile_panda_sim/mj/`、`assets/mujoco_kitchen/` |
+| 机器人 URDF 与网格 | `ros2_sim_ws/src/mobile_panda_description/` |
+| launch：只加载场景并建立话题 | `ros2_sim_ws/src/mobile_panda_bridge/launch/simulation.launch.py` |
+| ROS 2 桥接节点、示例客户端 | `ros2_sim_ws/src/mobile_panda_bridge/` |
+| Python 包：仿真核心 + 技能库 | `skills/`（`from skills.mj.sim import MujocoScene`） |
+| 仿真模型和场景 | `skills/mj/`、`assets/mujoco_kitchen/` |
 | 技能库 | [skills/README.md](skills/README.md) |
 | 强化学习训练 | [training/README.md](training/README.md) |
 | 接口说明 | [docs/ros2_interface.md](docs/ros2_interface.md) |
 | 仿真模型说明 | [docs/mujoco.md](docs/mujoco.md) |
+
+`ros2_sim_ws` 是基础仿真工作区：URDF/网格、MuJoCo 桥接节点和 launch；`skills/` 是 Python 包（仿真核心 + 技能库），训练代码在 `training/`。
 
 主要话题（命名空间 `/mobile_panda`）：
 
@@ -65,7 +68,7 @@ python3 -m venv .venv
 
 # 2. ROS 2 工作区
 source /opt/ros/jazzy/setup.bash
-cd ros2_ws && colcon build --symlink-install && cd ..
+cd ros2_sim_ws && colcon build --symlink-install && cd ..
 ```
 
 ## 启动
@@ -99,10 +102,10 @@ ros2 run mobile_panda_bridge teleop_check
 ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
 ros2 run mobile_panda_bridge run_skill pick --param object=lemon
 ros2 run mobile_panda_bridge run_skill navigate --param target='[-1.15, 1.70, 1.98]'
-ros2 run mobile_panda_bridge run_skill place --param target='[0.72, 0.0]'
+ros2 run mobile_panda_bridge run_skill place --param target='[0.75, 0.0]'
 ros2 run mobile_panda_bridge run_skill open --param articulation=kitchen_counter --param joint=middle_slide_top
 ros2 run mobile_panda_bridge run_skill pick --param object=lemon
-ros2 run mobile_panda_bridge run_skill place --param target='[0.55, 0.0]'
+ros2 run mobile_panda_bridge run_skill place --param target='[0.58, 0.0]'
 ros2 run mobile_panda_bridge run_skill close --param articulation=kitchen_counter --param joint=middle_slide_top
 ros2 run mobile_panda_bridge run_skill reset_arm
 ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
@@ -112,7 +115,7 @@ ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3
 
 ## 修改模型
 
-不要直接改生成的 URDF，改 `mobile_panda_sim/geometry.py`（尺寸、相机位置）或 `scripts/build_description.py`（连杆结构），然后：
+不要直接改生成的 URDF，改 `skills/geometry.py`（尺寸、相机位置）或 `scripts/build_description.py`（连杆结构），然后：
 
 ```bash
 .venv/bin/python scripts/build_description.py
