@@ -102,10 +102,10 @@ ros2 run mobile_panda_bridge teleop_check
 ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
 ros2 run mobile_panda_bridge run_skill pick --param object=lemon
 ros2 run mobile_panda_bridge run_skill navigate --param target='[-1.15, 1.70, 1.98]'
-ros2 run mobile_panda_bridge run_skill place --param target='[0.72, 0.0]'
+ros2 run mobile_panda_bridge run_skill place --param target='[0.75, 0.0]'
 ros2 run mobile_panda_bridge run_skill open --param articulation=kitchen_counter --param joint=middle_slide_top
 ros2 run mobile_panda_bridge run_skill pick --param object=lemon
-ros2 run mobile_panda_bridge run_skill place --param target='[0.55, 0.0]'
+ros2 run mobile_panda_bridge run_skill place --param target='[0.58, 0.0]'
 ros2 run mobile_panda_bridge run_skill close --param articulation=kitchen_counter --param joint=middle_slide_top
 ros2 run mobile_panda_bridge run_skill reset_arm
 ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
