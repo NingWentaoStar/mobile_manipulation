@@ -1,4 +1,4 @@
-"""Bring the arm back to its rest pose."""
+"""Bring the arm back to its default (rest) pose."""
 import numpy as np
 
 from ..geometry import ARM_REST
@@ -7,9 +7,9 @@ from .registry import register
 
 
 @register
-class Home(Skill):
-    name = "home"
-    applies_to = "任何位置，沿无碰撞路径回收手臂"
+class ResetArm(Skill):
+    name = "reset_arm"
+    applies_to = "任何位置，沿无碰撞路径把手臂收回默认姿态"
     not_for = "手臂被卡住时"
     preconditions = "底盘停稳"
 

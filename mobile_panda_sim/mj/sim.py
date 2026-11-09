@@ -38,9 +38,10 @@ class MujocoScene:
         self.articulations = {name: {joint: self.model.joint(f"{name}/{joint}").qposadr[0] for joint in joints}
                               for name, joints in self.kitchen.joints.items()}
         self.settled = None
-        self.settled = self.settle()
-        self.renderers = {name: mujoco.Renderer(self.model, height=h, width=w) for name, (w, h) in CAMERAS.items()}
         self.viewer = None
+        self.settled = self.settle()
+        self.reset()   # settle() lets the wheeled base free-fall with contacts disabled; park it back at start
+        self.renderers = {name: mujoco.Renderer(self.model, height=h, width=w) for name, (w, h) in CAMERAS.items()}
         if viewer:
             from mujoco import viewer as passive_viewer
             self.viewer = passive_viewer.launch_passive(self.model, self.data)
@@ -65,6 +66,8 @@ class MujocoScene:
         data.ctrl[self.arm_ctrl] = data.qpos[self.arm_q]
         data.ctrl[self.gripper_ctrl] = REST_POSITIONS["panda_finger_joint1"]
         mujoco.mj_forward(model, data)
+        if self.viewer is not None:
+            self.viewer.sync()   # passive viewer renders its own copy; push the reset state immediately
 
     def settle(self):
         """Resting poses of the props, with the robot out of the way: some start overlapping the furniture, and

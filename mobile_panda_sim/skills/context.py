@@ -3,7 +3,7 @@ from functools import cached_property
 
 import numpy as np
 
-from ..geometry import MAX_JOINT_DELTA
+from ..geometry import GRIPPER_RANGE, MAX_JOINT_DELTA
 from ..manipulation.planner import ArmPlanner
 from ..manipulation.pose import Pose
 from ..mj.world import MujocoWorld
@@ -56,6 +56,16 @@ class SkillContext:
         q = self.planner.qpos()[:7]
         delta = np.zeros(7) if q_target is None else np.clip(q_target - q, -MAX_JOINT_DELTA, MAX_JOINT_DELTA)
         self.world.step(delta, self.gripper)
+        self.steps += 1
+        if self.on_step:
+            self.on_step()
+
+    def drive(self, linear, angular, q_target=None):
+        """One base-motion step; the arm holds `q_target` (or the current joints)."""
+        q = self.planner.qpos()[:7]
+        delta = np.zeros(7) if q_target is None else np.clip(q_target - q, -MAX_JOINT_DELTA, MAX_JOINT_DELTA)
+        low, high = GRIPPER_RANGE
+        self.scene.step(linear, angular, delta, low + (self.gripper + 1)/2*(high - low))
         self.steps += 1
         if self.on_step:
             self.on_step()

@@ -3,6 +3,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .vscode/
+.venv/
 
 # Run outputs, generated simulator URDF copies, videos, reports
 outputs/

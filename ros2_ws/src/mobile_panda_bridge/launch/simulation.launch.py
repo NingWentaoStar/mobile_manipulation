@@ -1,4 +1,4 @@
-"""Load the scene only and expose ROS2 topics. No task or skill runs; physics waits for commands."""
+"""Load the scene and expose ROS2 topics. No task or skill runs; physics runs continuously."""
 import os
 from pathlib import Path
 

@@ -25,8 +25,10 @@ CAMERA_AXES = np.array([[0, 0, -1], [-1, 0, 0], [0, 1, 0]], dtype=np.float64)
 
 
 # Per finger; the actuator drives the mean of both fingers, so it gets twice these gains.
-FINGER_STIFFNESS, FINGER_DAMPING = 1000.0, 100.0
-FINGER_FRICTION = 1.15
+# A softer, higher-friction grip holds round objects better: squeezing harder squeezes them out.
+FINGER_STIFFNESS, FINGER_DAMPING = 800.0, 80.0
+FINGER_FRICTION = 1.6
+FINGER_TORSION, FINGER_ROLLING = 0.05, 0.01
 ARM_JOINTS = [f"panda_joint{i}" for i in range(1, 8)]
 FINGER_JOINTS = ["panda_finger_joint1", "panda_finger_joint2"]
 REST_POSITIONS = dict(zip(ARM_JOINTS + FINGER_JOINTS, ARM_REST))
@@ -75,6 +77,7 @@ def load_panda():
     for finger in ("panda_leftfinger", "panda_rightfinger"):
         for geom in spec.body(finger).geoms:
             geom.friction[0], geom.priority = FINGER_FRICTION, 1
+            geom.friction[1:3] = [FINGER_TORSION, FINGER_ROLLING]
     return spec
 
 

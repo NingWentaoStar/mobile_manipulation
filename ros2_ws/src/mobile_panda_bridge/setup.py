@@ -10,5 +10,6 @@ setup(
                 (f"share/{package}/rviz", glob("rviz/*.rviz"))],
     install_requires=["setuptools"], zip_safe=True,
     entry_points={"console_scripts": ["bridge = mobile_panda_bridge.node:main",
-                                      "teleop_check = mobile_panda_bridge.client:main"]},
+                                      "teleop_check = mobile_panda_bridge.client:main",
+                                      "run_skill = mobile_panda_bridge.run_skill:main"]},
 )

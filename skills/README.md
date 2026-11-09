@@ -13,7 +13,7 @@ skills.reset((-2.95, -1.15, 3.1416))                       # 底盘停靠位 (x,
 result = skills.run("pick", object="lemon")                # 返回 SkillResult
 print(result.success, result.message, result.info)
 if result:
-    skills.run("place", target=(-3.38, -1.42))
+    skills.run("place", target=(0.40, -0.60))              # 相对底盘：前 0.40 m、右 0.60 m
 print(skills.list())                                       # 所有技能和它们的适用范围
 ```
 
@@ -26,7 +26,8 @@ mobile_panda_sim/skills/
 ├── place.py           place
 ├── articulate.py      open、close，以及它们共用的拖动规划
 ├── base_pose.py       suggest_base_pose
-├── home.py            home
+├── reset_arm.py       reset_arm
+├── navigate.py        navigate
 └── learned/
     ├── tasks.py       训练任务
     ├── common.py      策略怎么在机器人上运行
@@ -75,20 +76,33 @@ class Wave(Skill):
 
 | 技能 | 能做 | 不能做 | 实测 |
 |---|---|---|---|
+| `navigate` | 空旷地面上开到目标位姿 `(x, y, yaw)`，yaw 可省略 | 需要绕开家具的路径；没有避障，只做直线反馈控制 | 默认起点到玄关台 / 台柜 / 冰箱 3/3 |
 | `pick` | 从上方抓窄边小于 7.5 cm、放在够得着的台面上的物体 | 从侧面抓；抓抽屉、冰箱里的东西；台面靠墙一侧太远的物品 | 糖盒、梨、柠檬 24/24 |
 | `place` | 把手中物体放到平整台面上 | 放进抽屉或冰箱；放到倾斜或很小的表面；圆的物体（如柠檬）松手后可能滚动几厘米 | 24/24 |
 | `open` / `close` | 台柜上层左、中抽屉；冰箱上门开到约 35° 再关上 | 台柜右上和所有下层抽屉、冰箱下门、矮柜推拉门（把手低于约 0.55 m）；从 70° 关冰箱门 | 开 24/24，关 24/24 |
 | `suggest_base_pose` | 选一个开和关都够得着的停靠位 | 不考虑底盘受力，假设底盘不动 | 两个抽屉和冰箱门，开 12/12，关 12/12 |
-| `home` | 手臂沿无碰撞路径回到收起姿态 | 手臂被卡住时 | 每轮都用到 |
+| `reset_arm` | 手臂沿无碰撞路径回到默认姿态 | 手臂被卡住时 | 每轮都用到 |
 | `rl_pick_move` | 玄关台上的柠檬、梨、汤罐，底盘停在 `DOCK`，物体在工作区内 | 其他物体；其他台面；其他停靠位 | 500 回合 83.6%（柠檬 88%、梨 93%、汤罐 70%） |
 | `rl_place` | 把这三种物体放到玄关台工作区内的指定位置 | 其他物体和其他台面 | 500 回合 86.6%（柠檬 86%、梨 90%、汤罐 83%） |
 
 要抓住宅场景里的物品，用 `pick` 和 `place`，它们更通用，成功率也更高。强化学习技能的用途是教学和训练例程：它们只为这三种物体和这个台面训练，不要指望换物体也能用。
 
+## 在 ROS 仿真里运行
+
+技能也可以在已经启动的 ROS 仿真里执行，和该仿真共用同一个场景，不会另起一个仿真：
+
+```bash
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
+ros2 run mobile_panda_bridge run_skill pick --param object=lemon
+```
+
+请求和结果分别是 `/mobile_panda/skill_request`、`/mobile_panda/skill_result`（JSON 字符串），详见 [docs/ros2_interface.md](../docs/ros2_interface.md#技能skill)。
+
 ## 例程
 
 ```bash
 .venv/bin/python scripts/demo_manipulation.py all --viewer              # 传统方法：抓放物品、开关抽屉和冰箱门
+.venv/bin/python scripts/demo_manipulation.py navigate --viewer         # 导航到玄关台，再抓取、放置
 .venv/bin/python scripts/demo_rl_skills.py --object pear                # 强化学习：开到玄关台，拿起，移到指定位置，放下
 .venv/bin/python scripts/demo_rl_skills.py --no-viewer --episodes 20
 ```

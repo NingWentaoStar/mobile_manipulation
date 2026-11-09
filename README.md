@@ -1,8 +1,8 @@
-# 移动 Panda 仿真 ROS 2 接口
+# 基于差速移动+Panda机械臂的mujoco仿真
 
-在 MuJoCo 中加载一台**差速底盘 + Franka Panda** 的移动机械臂和一个住宅场景（厨房 + 餐厅 + 客厅），通过 ROS 2 开放控制和感知接口，供学生编写 Agent。附带技能库：传统方法的抓取、放置、开关抽屉和柜门，以及两个用强化学习训练的技能。
+在 MuJoCo 中加载一台**差速底盘 + Franka Panda** 的移动机械臂和一个住宅场景（厨房 + 餐厅 + 客厅），通过 ROS 2 开放控制和感知接口。附带技能库：传统方法的抓取、放置、开关抽屉和柜门，以及两个用强化学习训练的技能。
 
-## 交付内容
+## 主要内容
 
 | 内容 | 位置 |
 |---|---|
@@ -29,7 +29,7 @@
 
 另有相机内参、状态 JSON、场景布局、stop/reset 服务，见接口说明。
 
-launch 启动后加载场景、发布话题，然后等待命令：**不执行任务，也不推进物理时间**，直到收到控制命令。
+launch 启动后加载场景、发布话题并**持续运行物理仿真**（不执行任何任务）。没有控制命令时，控制器保持机器人当前位置；收到命令后按新指令运动。
 
 ## 场景
 
@@ -55,12 +55,12 @@ launch 启动后加载场景、发布话题，然后等待命令：**不执行�
 ## 安装
 
 ```bash
-git clone <本仓库地址> mobile-panda-agent
-cd mobile-panda-agent
+git clone git@github.com:PIControlLab/mobile_manipulation.git
+cd mobile_manipulation
 
 # 1. Python 环境和 Panda 模型（约 36 MB）
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 .venv/bin/python scripts/download_menagerie.py
 
 # 2. ROS 2 工作区
@@ -70,39 +70,45 @@ cd ros2_ws && colcon build --symlink-install && cd ..
 
 ## 启动
 
-在仓库根目录：
-
+在文件“~/.bashrc”中，添加
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ros2_ws/install/setup.bash
-ros2 launch mobile_panda_bridge simulation.launch.py                # 打开 MuJoCo 窗口
-ros2 launch mobile_panda_bridge simulation.launch.py viewer:=false rviz:=true
+source ~/mobile_manipulation/setup.sh
+```
+退出所有目录。
+
+在仓库根目录（选择其中一个）：
+```bash
+ros2 launch mobile_panda_bridge simulation.launch.py                
+ros2 launch mobile_panda_bridge simulation.launch.py rviz:=true     
 ros2 launch mobile_panda_bridge simulation.launch.py base:=planar start_x:=0.0 start_y:=0.0 start_yaw:=0.0
 ```
+仿真一直在运行，由PID控制器锁在当前的位置。当收到控制指令时，切换至控制指令。
 
-不在仓库根目录启动时，加 `project_root:=/path/to/mobile-panda-agent`，或设置环境变量 `MOBILE_PANDA_ROOT`。launch 优先用仓库里的 `.venv`，日志里会打印用的是哪个解释器；要换时用 `sim_python:=...` 或 `MOBILE_PANDA_SIM_PYTHON` 指定。
-
-检查接口（另开终端，launch 运行中）：
-
+测试接口，另开终端：
 ```bash
-source /opt/ros/jazzy/setup.bash && source ros2_ws/install/setup.bash
 ros2 run mobile_panda_bridge teleop_check
 ```
-
 它会接收所有传感器话题，然后让底盘前进、转向，动一个关节，开合夹爪，并检查位姿和关节状态有没有响应，最后输出 `"passed": true`。
-
-只看 URDF（不启动仿真）：`ros2 launch mobile_panda_description display.launch.py base:=wheels`
 
 ## 技能库
 
 每个技能能做和不能做的事见 [skills/README.md](skills/README.md#适用范围)。
 
+例子
 ```bash
-.venv/bin/python scripts/demo_manipulation.py all --viewer      # 传统方法：抓放物品、开关抽屉和冰箱门
-.venv/bin/python scripts/demo_rl_skills.py                      # 强化学习：开到玄关台，拿起物体，放到指定位置
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
+ros2 run mobile_panda_bridge run_skill pick --param object=lemon
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-1.15, 1.70, 1.98]'
+ros2 run mobile_panda_bridge run_skill place --param target='[0.72, 0.0]'
+ros2 run mobile_panda_bridge run_skill open --param articulation=kitchen_counter --param joint=middle_slide_top
+ros2 run mobile_panda_bridge run_skill pick --param object=lemon
+ros2 run mobile_panda_bridge run_skill place --param target='[0.55, 0.0]'
+ros2 run mobile_panda_bridge run_skill close --param articulation=kitchen_counter --param joint=middle_slide_top
+ros2 run mobile_panda_bridge run_skill reset_arm
+ros2 run mobile_panda_bridge run_skill navigate --param target='[-2.95, -1.15, 3.1416]'
 ```
 
-技能目前通过 Python 调用，**还没有接到 ROS 话题上**；学生的 Agent 通过 ROS 控制机器人。
+技能在仿真 worker 进程内执行，和已启动的 ROS 仿真共用同一个场景，不会另起仿真。也可以直接向 `/mobile_panda/skill_request` 发 JSON 请求，结果在 `/mobile_panda/skill_result`。
 
 ## 修改模型
 
@@ -120,15 +126,22 @@ env -u PYTHONPATH .venv/bin/python -m pytest tests -q
 - 轮式底盘的支撑球离地 1 mm，车身有约 0.25° 的翘动。
 - 住宅场景的数据是转换好的，仓库里没有重新生成它的工具。
 - 没有障碍物地图话题；家具占地范围在 `/mobile_panda/scene_info`。
-- 技能只能在 Python 里调用，还没有接到 ROS 话题上。
+- 抓取和开关技能不含导航：先用 `navigate` 技能把底盘开到技能要求的位姿，对照表见 [skills/README.md](skills/README.md#适用范围)。
 - RViz 加载 `.glb` 网格时日志里没有报错，但还没有人眼确认显示效果。
 
-## 测试环境
-
-所有实测数字都来自 Ubuntu 22.04 + ROS 2 Humble，代码另在 Python 3.12 上测过。**Ubuntu 24.04 + ROS 2 Jazzy 还没有实测**，第一次部署时请跑一遍 `teleop_check` 和测试。
-
 ## 来源
-
 - Panda 模型来自 [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie)（Apache-2.0），由 `scripts/download_menagerie.py` 下载。
 - Panda 网格、`panda_v2.urdf` 和 `panda_v2.srdf` 来自 [ManiSkill](https://github.com/haosulab/ManiSkill)（Apache-2.0）。
 - 住宅场景使用 ReplicaCAD（CC BY-NC 4.0，**仅限非商业用途**）和 YCB 物品模型（CC BY 4.0），见 [assets/mujoco_kitchen/ATTRIBUTION.md](assets/mujoco_kitchen/ATTRIBUTION.md)。
+
+## 协作流程
+
+`origin` 为个人 fork，`upstream` 为实验室仓库。克隆后先添加 `upstream`：
+
+```bash
+git remote add upstream git@github.com:PIControlLab/mobile_manipulation.git
+```
+
+- 开发：在 `main` 上提交后 `git push origin main`
+- 同步：`git fetch upstream && git merge upstream/main`
+- 贡献：向 `PIControlLab:main` 开 PR，审查后合并

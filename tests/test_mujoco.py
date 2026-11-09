@@ -191,7 +191,7 @@ def test_world_reads_the_scene(library):
 
 def test_library_lists_every_skill_with_its_scope(library):
     listed = library.list()
-    assert set(listed) == {"pick", "place", "open", "close", "home", "suggest_base_pose", "rl_pick_move", "rl_place"}
+    assert set(listed) == {"navigate", "pick", "place", "open", "close", "reset_arm", "suggest_base_pose", "rl_pick_move", "rl_place"}
     catalog = json.loads((REPO / "skills/catalog.json").read_text(encoding="utf-8"))["local_skills"]
     for entry in catalog:
         assert listed[entry["id"]] == {key: entry[key] for key in ("applies_to", "not_for", "preconditions")}, entry["id"]
@@ -210,7 +210,7 @@ def test_pick_and_place_skill(library):
     library.reset((-2.95, -1.15, 3.1416))
     assert library.run("pick", object="pear")
     assert library.context.held == "pear"
-    assert library.run("place", target=(-3.40, -1.00))
+    assert library.run("place", target=(0.45, -0.15))          # relative to the base: world (-3.40, -1.00)
     assert library.context.held is None
     assert np.linalg.norm(library.context.world.object_position("pear")[:2] - [-3.40, -1.00]) < 0.04
 

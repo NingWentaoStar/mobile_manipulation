@@ -1,4 +1,4 @@
-# 传统方法操作技能：抓取、放置、开关抽屉和柜门
+# 传统方法操作技能：导航、抓取、放置、开关抽屉和柜门
 
 代码在 `mobile_panda_sim/skills/` 和 `mobile_panda_sim/manipulation/`，不用训练：
 
@@ -6,11 +6,11 @@
 |---|---|
 | `manipulation/pose.py` | 位姿运算，不依赖任何仿真器 |
 | `manipulation/planner.py` | 运动规划层：基于 mplib 的逆运动学、避障路径（RRTConnect）、直线运动。障碍物是从场景碰撞体采样的点云；机械臂下面的立柱和底盘写进了规划用的机器人模型，算作自碰撞 |
-| `skills/pick.py`、`place.py`、`articulate.py`、`base_pose.py`、`home.py` | 技能层，每个技能一个模块 |
+| `skills/navigate.py`、`pick.py`、`place.py`、`articulate.py`、`base_pose.py`、`reset_arm.py` | 技能层，每个技能一个模块 |
 | `mj/world.py` | 技能需要的仿真接口：位姿、关节、步进、碰撞几何、射线、接触 |
 
 这些技能读取仿真里的真值（物体网格和位姿、把手位置、关节轴），是**参考实现**，不经过视觉。
-底盘必须先停好，技能执行时底盘速度保持为 0；开到哪里、怎么开过去由调用者（学生的导航技能）负责。
+`navigate` 负责开到目标位姿（直线反馈控制，没有避障）；抓取和开关技能执行时底盘速度保持为 0，所以调用前要先用 `navigate` 停到位。
 
 ## 用法
 
@@ -20,11 +20,12 @@ from mobile_panda_sim.skills import SkillLibrary
 
 scene = MujocoScene("wheels")
 skills = SkillLibrary(scene)
-skills.reset((-2.95, -1.15, 3.1416))        # 底盘停靠位 (x, y, yaw)
+skills.reset((-2.55, -1.95, 1.5708))        # 场景默认起点 (x, y, yaw)
 
+skills.run("navigate", target=(-2.95, -1.15, 3.1416))   # 开到玄关台前的停靠位
 r = skills.run("pick", object="lemon")      # 从上方抓起，抬高 12 cm
-r = skills.run("place", target=(-3.38, -1.42))   # 放到 (x, y) 下方的台面上，松开，抬手
-skills.run("home")                          # 回到收起姿态
+r = skills.run("place", target=(0.40, -0.60))   # 相对底盘 (x 向前, y 向左)，放到台面上，松开，抬手
+skills.run("reset_arm")                     # 回到默认姿态
 print(r.success, r.message, r.info)         # SkillResult：成功与否、原因、细节
 
 joint = dict(articulation="kitchen_counter", joint="middle_slide_top")
@@ -41,6 +42,7 @@ skills.run("open", articulation="fridge", joint="top_door_hinge")   # 门默认�
 ```bash
 .venv/bin/python scripts/demo_manipulation.py drawer              # 台柜上层两个抽屉：开、关
 .venv/bin/python scripts/demo_manipulation.py pickplace           # 玄关台上的糖盒、梨、柠檬：抓起、放到别处
+.venv/bin/python scripts/demo_manipulation.py navigate            # 从默认起点开到玄关台，再抓起、放下
 .venv/bin/python scripts/demo_manipulation.py fridge --record outputs/fridge.mp4
 .venv/bin/python scripts/demo_manipulation.py all --viewer        # 实时窗口；跑完不自动关闭，关窗口即退出
 .venv/bin/python scripts/demo_manipulation.py all --repeat 5 --report outputs/manipulation.json
