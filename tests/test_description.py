@@ -3,7 +3,7 @@ import xml.etree.ElementTree as E
 
 import pytest
 
-from mobile_panda_sim.paths import DESCRIPTION, PACKAGE, ros_urdf
+from skills.paths import DESCRIPTION, PACKAGE, ros_urdf
 
 ACTIVE = {"wheels": 11, "planar": 12}
 CAMERA_FRAMES = {"base_camera_link", "base_camera_optical_frame", "hand_camera_link", "hand_camera_optical_frame"}

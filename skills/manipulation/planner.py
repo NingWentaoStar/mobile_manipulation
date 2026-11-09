@@ -38,11 +38,12 @@ def planner_description():
     meshes = out / "franka_description"
     if meshes.is_symlink():
         meshes.unlink(missing_ok=True)
-    (meshes).mkdir(exist_ok=True)
-    try:
-        (meshes / "meshes").symlink_to(DESCRIPTION / "meshes/franka", target_is_directory=True)
-    except FileExistsError:
-        pass
+    meshes.mkdir(exist_ok=True)
+    link, target = meshes / "meshes", DESCRIPTION / "meshes/franka"
+    if link.is_symlink() and link.resolve() != target.resolve():   # stale after a move/rename
+        link.unlink()
+    if not link.exists() and not link.is_symlink():
+        link.symlink_to(target, target_is_directory=True)
     urdf = PANDA_URDF.read_text()
     pad = 0.01
     base = f"""

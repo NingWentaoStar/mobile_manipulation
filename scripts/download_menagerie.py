@@ -6,7 +6,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from mobile_panda_sim.paths import MENAGERIE_PANDA  # noqa: E402
+from skills.paths import MENAGERIE_PANDA  # noqa: E402
 
 REPO = "https://github.com/google-deepmind/mujoco_menagerie.git"
 COMMIT = "98a70c569c4c1b6da467a20012f766ee1f8dc521"

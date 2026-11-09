@@ -1,7 +1,7 @@
 """Pose math (no simulator needed)."""
 import numpy as np
 
-from mobile_panda_sim.manipulation.pose import Pose, matrix_from_quat, pose_from_axes, quat_from_matrix
+from skills.manipulation.pose import Pose, matrix_from_quat, pose_from_axes, quat_from_matrix
 
 
 def random_rotation(rng):

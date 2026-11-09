@@ -15,7 +15,7 @@ outputs/
 training/runs/
 
 # colcon artifacts
-ros2_ws/build/
-ros2_ws/install/
-ros2_ws/log/
+ros2_sim_ws/build/
+ros2_sim_ws/install/
+ros2_sim_ws/log/
 log/

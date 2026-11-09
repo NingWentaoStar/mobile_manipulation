@@ -30,7 +30,7 @@
 | [AnyGrasp](https://github.com/graspnet/anygrasp_sdk) | 通用抓取检测 | 按机器申请授权 | 闭源 | 已核对 | 不适合分发给学生 |
 | TRG | — | — | — | 未找到 | 需要论文全名或 arXiv 号 |
 
-本平台目前只发布 RGB 图像。要用这一类模型，需要在 `mobile_panda_sim/scene.py` 的 `capture_rgb()` 旁边再加深度输出（相机已经支持 `depth=True`），并在 ROS 端发布深度图或点云。
+本平台目前只发布 RGB 图像。要用这一类模型，需要在 `skills/mj/sim.py` 的 `capture_rgb()` 旁边再加深度输出（相机已经支持 `depth=True`），并在 ROS 端发布深度图或点云。
 
 ## 3. 运动规划
 

@@ -8,7 +8,7 @@
 ```text
 ros2 launch ──> mobile_panda_bridge（系统 Python，rclpy）
                    │  stdin/stdout，逐行 JSON
-                   └─> mobile_panda_sim.ros2.worker（装了 mujoco 的 Python）
+                   └─> skills.ros2.worker（装了 mujoco 的 Python）
                 robot_state_publisher（URDF + joint_states → TF）
 ```
 
@@ -106,4 +106,4 @@ ros2 topic echo --once /mobile_panda/state --field data
 ros2 service call /mobile_panda/reset std_srvs/srv/Trigger
 ```
 
-完整的 Python 示例：`ros2_ws/src/mobile_panda_bridge/mobile_panda_bridge/client.py`（`ros2 run mobile_panda_bridge teleop_check`）。
+完整的 Python 示例：`ros2_sim_ws/src/mobile_panda_bridge/mobile_panda_bridge/client.py`（`ros2 run mobile_panda_bridge teleop_check`）。

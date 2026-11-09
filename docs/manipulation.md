@@ -1,13 +1,13 @@
 # 传统方法操作技能：导航、抓取、放置、开关抽屉和柜门
 
-代码在 `mobile_panda_sim/skills/` 和 `mobile_panda_sim/manipulation/`，不用训练：
+代码在 `skills/library/` 和 `skills/manipulation/`，不用训练：
 
 | 文件 | 内容 |
 |---|---|
-| `manipulation/pose.py` | 位姿运算，不依赖任何仿真器 |
-| `manipulation/planner.py` | 运动规划层：基于 mplib 的逆运动学、避障路径（RRTConnect）、直线运动。障碍物是从场景碰撞体采样的点云；机械臂下面的立柱和底盘写进了规划用的机器人模型，算作自碰撞 |
-| `skills/navigate.py`、`pick.py`、`place.py`、`articulate.py`、`base_pose.py`、`reset_arm.py` | 技能层，每个技能一个模块 |
-| `mj/world.py` | 技能需要的仿真接口：位姿、关节、步进、碰撞几何、射线、接触 |
+| `skills/manipulation/pose.py` | 位姿运算，不依赖任何仿真器 |
+| `skills/manipulation/planner.py` | 运动规划层：基于 mplib 的逆运动学、避障路径（RRTConnect）、直线运动。障碍物是从场景碰撞体采样的点云；机械臂下面的立柱和底盘写进了规划用的机器人模型，算作自碰撞 |
+| `skills/library/navigate.py`、`pick.py`、`place.py`、`articulate.py`、`base_pose.py`、`reset_arm.py` | 技能层，每个技能一个模块 |
+| `skills/mj/world.py` | 技能需要的仿真接口：位姿、关节、步进、碰撞几何、射线、接触 |
 
 这些技能读取仿真里的真值（物体网格和位姿、把手位置、关节轴），是**参考实现**，不经过视觉。
 `navigate` 负责开到目标位姿（直线反馈控制，没有避障）；抓取和开关技能执行时底盘速度保持为 0，所以调用前要先用 `navigate` 停到位。
@@ -15,8 +15,8 @@
 ## 用法
 
 ```python
-from mobile_panda_sim.mj.sim import MujocoScene
-from mobile_panda_sim.skills import SkillLibrary
+from skills.mj.sim import MujocoScene
+from skills.library import SkillLibrary
 
 scene = MujocoScene("wheels")
 skills = SkillLibrary(scene)

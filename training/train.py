@@ -16,7 +16,7 @@ import torch
 from torch import nn
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from mobile_panda_sim.skills.learned.tasks import ACTION_SIZE, MAX_STEPS, OBS_SIZE, TARGETS, PickMoveTask, PlaceTask  # noqa: E402
+from skills.library.learned.tasks import ACTION_SIZE, MAX_STEPS, OBS_SIZE, TARGETS, PickMoveTask, PlaceTask  # noqa: E402
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

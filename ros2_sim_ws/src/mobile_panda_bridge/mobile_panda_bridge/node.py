@@ -49,8 +49,8 @@ class Bridge(Node):
         root = Path(param("project_root")).expanduser().resolve()
         python = Path(param("sim_python")).expanduser() if param("sim_python") else find_python(root)
         self.get_logger().info(f"Simulation interpreter: {python}")
-        if not (root / "mobile_panda_sim/ros2/worker.py").is_file():
-            raise RuntimeError(f"project_root={root} is not the repository root (mobile_panda_sim/ missing)")
+        if not (root / "skills/ros2/worker.py").is_file():
+            raise RuntimeError(f"project_root={root} is not the repository root (skills/ missing)")
         if not python.is_file():
             raise RuntimeError(f"sim_python={python} not found; set it to an interpreter with mujoco")
 
@@ -79,7 +79,7 @@ class Bridge(Node):
         env = os.environ.copy()
         env.pop("PYTHONHOME", None)
         env["PYTHONPATH"] = str(root)
-        args = [str(python), "-u", "-m", "mobile_panda_sim.ros2.worker", "--base", param("base")]
+        args = [str(python), "-u", "-m", "skills.ros2.worker", "--base", param("base")]
         start = [param("start_x"), param("start_y"), param("start_yaw")]
         if not any(v != v for v in start):
             args += ["--start", *map(str, start)]

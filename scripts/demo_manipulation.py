@@ -20,8 +20,8 @@ import time
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from mobile_panda_sim.mj.sim import MujocoScene  # noqa: E402
-from mobile_panda_sim.skills import SkillLibrary  # noqa: E402
+from skills.mj.sim import MujocoScene  # noqa: E402
+from skills.library import SkillLibrary  # noqa: E402
 
 SCENARIOS = {
     "drawer": [
